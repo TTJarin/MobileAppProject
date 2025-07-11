@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ConfirmationScreen({ navigation }: any) {
+export default function ConfirmationScreen({ route, navigation }: any) {
+  const food = route?.params?.food;
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -19,7 +21,11 @@ export default function ConfirmationScreen({ navigation }: any) {
         </Text>
 
         <Text style={styles.subMessage}>
-          Please Pickup the food at the specific{'\n'}time and location.
+          Please contact to the given number to  pickup{'\n'} the food at the specifictime and location.
+        </Text>
+
+        <Text style={styles.subMessage}>
+          Contact No: {food?.contactNo || 'Not available'}
         </Text>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
@@ -43,7 +49,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: 'bold', marginTop: 20, color: '#333' },
   message: { fontSize: 18, fontWeight: '600', textAlign: 'center', marginVertical: 15, color: '#333' },
-  subMessage: { fontSize: 14, textAlign: 'center', color: '#555' },
+  subMessage: { fontSize: 14, textAlign: 'center', color: '#555', marginTop: 10 },
   button: {
     backgroundColor: 'seagreen',
     paddingVertical: 14,

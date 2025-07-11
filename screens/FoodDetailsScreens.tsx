@@ -9,16 +9,19 @@ export default function FoodDetailsScreen({ route, navigation }: any) {
   const handleConfirm = () => {
     addRequest(food.foodName, food.username, 'CurrentUser'); // replace 'CurrentUser' dynamically later
     navigation.navigate('Confirmation');
-
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>{food.username} Food</Text>
+      <Text style={styles.header}>Food Details</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Food: {food.foodName}</Text>
-        <Text>Pickup: {food.pickupTime}</Text>
+        <Text style={styles.label}>Donor Username: {food.username}</Text>
+        <Text style={styles.label}>Food Name: {food.foodName}</Text>
+        <Text style={styles.label}>Quantity: {food.quantity}</Text>
+        <Text style={styles.label}>Fee: {food.fee}</Text>
+        <Text style={styles.label}>Location: {food.location}</Text>
+        <Text style={styles.label}>Pickup Time: {food.pickupTime}</Text>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleConfirm}>

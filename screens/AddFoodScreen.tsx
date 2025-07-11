@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { FoodContext } from '../contexts/FoodContext';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { db } from '../firebaseConfig';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default function AddFoodScreen({ navigation }: any) {
   const [foodName, setFoodName] = useState('');
@@ -9,12 +10,32 @@ export default function AddFoodScreen({ navigation }: any) {
   const [location, setLocation] = useState('');
   const [pickupTime, setPickupTime] = useState('');
   const [username, setUsername] = useState('');
+  const [contactNo, setContactNo] = useState('');  // ✅ new state
 
-  const { addFood } = useContext(FoodContext);
+  const handleSubmit = async () => {
+    if (!foodName || !quantity || !fee || !location || !pickupTime || !username || !contactNo) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
 
-  const handleSubmit = () => {
-    addFood({ foodName, quantity, fee, location, pickupTime, username });
-    navigation.navigate('Home');
+    try {
+      await addDoc(collection(db, 'foods'), {
+        foodName,
+        quantity,
+        fee,
+        location,
+        pickupTime,
+        username,
+        contactNo,  // ✅ add this
+        createdAt: Timestamp.now(),
+      });
+
+      Alert.alert('Success', 'Food added successfully!');
+      navigation.navigate('Home');
+    } catch (error: any) {
+      console.error('Error adding food:', error.message);
+      Alert.alert('Error', 'Failed to add food.');
+    }
   };
 
   return (
@@ -27,11 +48,11 @@ export default function AddFoodScreen({ navigation }: any) {
       <TextInput style={styles.input} placeholder="Location" value={location} onChangeText={setLocation} />
       <TextInput style={styles.input} placeholder="Pickup Time" value={pickupTime} onChangeText={setPickupTime} />
       <TextInput style={styles.input} placeholder="Your Username" value={username} onChangeText={setUsername} />
+      <TextInput style={styles.input} placeholder="Contact Number" value={contactNo} onChangeText={setContactNo} keyboardType="phone-pad" />  {/* ✅ new field */}
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
-
     </ScrollView>
   );
 }
