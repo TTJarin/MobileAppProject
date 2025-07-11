@@ -1,67 +1,81 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, ScrollView } from 'react-native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
 
-export default function RegisterScreen({ navigation }: any) {
+const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
-  const [username, setUsername] = useState(''); // new state
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [contactNo, setContactNo] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleRegister = () => {
-    // You can later add validation or Firebase registration here
-    navigation.navigate('Login');
+  const handleRegister = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!name || !username || !email || !password || !contactNo) {
+      setErrorMessage('Please fill in all the fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        name,
+        username,
+        email,
+        contactNo,
+      });
+
+      setSuccessMessage('Account created successfully! Redirecting to Login...');
+
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 2000);
+
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        setErrorMessage('This email is already registered.');
+      } else if (error.code === 'auth/invalid-email') {
+        setErrorMessage('Invalid email address.');
+      } else if (error.code === 'auth/weak-password') {
+        setErrorMessage('Password must be at least 6 characters long.');
+      } else {
+        setErrorMessage(error.message);
+      }
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Register</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
+      <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
+      <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} />
+      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
+      <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+      <TextInput style={styles.input} placeholder="Contact Number" value={contactNo} onChangeText={setContactNo} keyboardType="phone-pad" />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Contact Number"
-        value={contactNo}
-        onChangeText={setContactNo}
-        keyboardType="phone-pad"
-      />
-
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-
+      <Button title="Register" onPress={handleRegister} />
     </ScrollView>
   );
-}
+};
+
+export default RegisterScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -75,7 +89,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30
+    marginBottom: 30,
   },
   input: {
     width: '100%',
@@ -86,18 +100,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginVertical: 10,
   },
-  button: {
-    backgroundColor: 'seagreen',
-    paddingVertical: 14,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-    marginTop: 20,
-    minWidth: 200
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  buttonText: {
-    color: '#fff', 
-    fontSize: 18, 
-    fontWeight: '600', 
-    textAlign: 'center'
+  successText: {
+    color: 'seagreen',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });

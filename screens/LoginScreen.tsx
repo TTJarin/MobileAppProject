@@ -1,13 +1,64 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 
-export default function LoginScreen({ navigation }: any) {
+import { auth, db } from '../firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getDoc, setDoc, doc } from 'firebase/firestore';
+
+const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleLogin = () => {
-    // You can add validation or Firebase login here later
-    navigation.navigate('Home');
+  const handleLogin = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!email || !password) {
+      setErrorMessage('Please enter email and password.');
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        const defaultUsername = email.split('@')[0];
+        await setDoc(userRef, {
+          username: defaultUsername,
+          email: user.email,
+        });
+      }
+
+      setSuccessMessage('Logged in successfully! Redirecting to Home...');
+
+      setTimeout(() => {
+        navigation.navigate('Home');
+      }, 2000);
+
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        setErrorMessage('No account found with that email.');
+      } else if (error.code === 'auth/wrong-password') {
+        setErrorMessage('Incorrect password.');
+      } else if (error.code === 'auth/invalid-email') {
+        setErrorMessage('Invalid email format.');
+      } else {
+        setErrorMessage(error.message);
+      }
+    }
   };
 
   return (
@@ -15,53 +66,75 @@ export default function LoginScreen({ navigation }: any) {
       <Text style={styles.title}>Login</Text>
 
       <TextInput
-        style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
+        autoCapitalize="none"
         keyboardType="email-address"
+        style={styles.input}
       />
 
       <TextInput
-        style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        style={styles.input}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
+      <Button title="Login" onPress={handleLogin} color="seagreen" />
+
+      <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerContainer}>
+        <Text style={styles.registerText}>Dont have an account? <Text style={styles.registerLink}>Register</Text></Text>
+      </TouchableOpacity>
     </View>
   );
-}
+};
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff'
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
   title: {
-    fontSize: 28, fontWeight: 'bold', marginBottom: 30
+    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   input: {
-    width: '80%',
-    height: 50,
     borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginVertical: 10,
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
   },
-  button: {
-    backgroundColor: 'seagreen',
-    paddingVertical: 14,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-    marginTop: 20
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
+    fontWeight: '600',
   },
-  buttonText: {
-    color: '#fff', fontSize: 18, fontWeight: '600'
+  successText: {
+    color: 'seagreen',
+    textAlign: 'center',
+    marginBottom: 10,
+    fontWeight: '600',
+  },
+  registerContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  registerText: {
+    color: '#444',
+    fontSize: 16,
+  },
+  registerLink: {
+    color: 'seagreen',
+    fontWeight: 'bold',
   },
 });

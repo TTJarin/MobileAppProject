@@ -2,21 +2,23 @@ import React from 'react';
 import { registerRootComponent } from 'expo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import WelcomeScreen from '../../screens/WelcomeScreen';
 import LoginScreen from '../../screens/LoginScreen';
-import HomeScreen from '../../screens/HomeScreen';
 import RegisterScreen from '../../screens/RegisterScreen';
+import HomeScreen from '../../screens/HomeScreen';
 import AddFoodScreen from '../../screens/AddFoodScreen';
-import { FoodProvider } from '../../contexts/FoodContext';
 import ViewFoodScreen from '../../screens/ViewFoodScreen';
 import FoodDetailsScreen from '../../screens/FoodDetailsScreens';
-import { RequestProvider } from '../../contexts/RequestContext';
 import RequestListScreen from '../../screens/RequestListScreen';
 import ConfirmationScreen from '../../screens/ConfirmationScreen';
 
+import { RequestProvider } from '../../contexts/RequestContext';
+// import { FoodProvider } from '../../contexts/FoodContext'; // If you use it
+
 const Stack = createNativeStackNavigator();
 
-const App =() =>{
+const App = () => {
   return (
     <RequestProvider>
       <NavigationContainer>
@@ -34,5 +36,6 @@ const App =() =>{
       </NavigationContainer>
     </RequestProvider>
   );
-}
+};
+
 export default registerRootComponent(App);
