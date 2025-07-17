@@ -4,12 +4,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 export default function WelcomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
-      {/* Top Half */}
       <View style={styles.topHalf}>
         <Text style={styles.title}>Welcome to Plate2People!</Text>
       </View>
 
-      {/* Bottom Half */}
+      
       <View style={styles.bottomHalf}>
         <TouchableOpacity
           style={styles.button}

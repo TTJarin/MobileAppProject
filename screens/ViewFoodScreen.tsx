@@ -1,23 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { db } from '../firebaseConfig';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
+import { collection, onSnapshot, getDoc, doc } from 'firebase/firestore';
+
+interface FoodItem {
+  id: string;
+  pickupTime: any;
+  username: string;
+  foodName: string;
+  quantity: string;
+  fee: string;
+  location: string;
+  available: boolean;
+}
 
 export default function ViewFoodScreen({ navigation }: any) {
-  const [foodList, setFoodList] = useState<any[]>([]);
+  const [foodList, setFoodList] = useState<FoodItem[]>([]);
+  const [userNamesMap, setUserNamesMap] = useState<{ [username: string]: string }>({});
   const [loading, setLoading] = useState(true);
 
+  const currentUserEmail = auth.currentUser?.email || '';
+  const currentUsername = currentUserEmail.split('@')[0];
+
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'foods'), (snapshot) => {
-      const foods = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setFoodList(foods);
+    const unsubscribe = onSnapshot(collection(db, 'foods'), async (snapshot) => {
+      const now = new Date();
+
+      const allFoods = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as FoodItem[];
+
+      const validFoods = allFoods.filter((food) => {
+        const time = food.pickupTime;
+        let pickupDate: Date;
+
+        if (time?.toDate && typeof time.toDate === 'function') {
+          pickupDate = time.toDate();
+        } else {
+          pickupDate = new Date(time);
+        }
+
+        return pickupDate > now && !isNaN(pickupDate.getTime()) && food.username !== currentUsername;
+      });
+
+      const usernames = Array.from(new Set(validFoods.map((food) => food.username)));
+      const namesMap: { [username: string]: string } = {};
+
+      await Promise.all(
+        usernames.map(async (username) => {
+          const userDoc = await getDoc(doc(db, 'users', username));
+          if (userDoc.exists()) {
+            namesMap[username] = userDoc.data().name;
+          } else {
+            namesMap[username] = username;
+          }
+        })
+      );
+
+      setUserNamesMap(namesMap);
+      setFoodList(validFoods);
       setLoading(false);
     });
 
     return unsubscribe;
-  }, []);
+  }, [currentUsername]);
 
-  const uniqueUsernames = [...new Set(foodList.map(item => item.username))];
+  const uniqueUsernames = Array.from(new Set(foodList.map((item) => item.username)));
 
   if (loading) {
     return (
@@ -40,7 +86,7 @@ export default function ViewFoodScreen({ navigation }: any) {
             style={styles.card}
             onPress={() => navigation.navigate('UserFoods', { username })}
           >
-            <Text style={styles.usernameText}>👤 {username}</Text>
+            <Text style={styles.usernameText}>{userNamesMap[username] || username}</Text>
           </TouchableOpacity>
         ))
       )}

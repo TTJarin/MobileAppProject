@@ -9,7 +9,6 @@ export default function HomeScreen({ navigation }: any) {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Home Page</Text>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddFood')}>
           <Text style={styles.buttonText}>Add Food</Text>

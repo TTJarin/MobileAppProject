@@ -31,6 +31,14 @@ const LoginScreen = ({ navigation }: any) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Check if email verified
+      if (!user.emailVerified) {
+        setErrorMessage('Please verify your email before logging in.');
+        await auth.signOut();
+        return;
+      }
+
+      // Check if user document exists
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -88,7 +96,7 @@ const LoginScreen = ({ navigation }: any) => {
       <Button title="Login" onPress={handleLogin} color="seagreen" />
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerContainer}>
-        <Text style={styles.registerText}>Dont have an account? <Text style={styles.registerLink}>Register</Text></Text>
+        <Text style={styles.registerText}>{`Don't`} have an account? <Text style={styles.registerLink}>Register</Text></Text>
       </TouchableOpacity>
     </View>
   );
@@ -106,12 +114,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
+    color: 'seagreen',
+    fontWeight: 'bold',
   },
   input: {
     borderWidth: 1,
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
+    borderColor: '#ccc',
   },
   errorText: {
     color: 'red',

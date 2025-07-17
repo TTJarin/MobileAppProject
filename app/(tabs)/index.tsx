@@ -12,6 +12,7 @@ import ViewFoodScreen from '../../screens/ViewFoodScreen';
 import FoodDetailsScreen from '../../screens/FoodDetailsScreens';
 import ConfirmationScreen from '../../screens/ConfirmationScreen';
 import UserFoodsScreen from '../../screens/UserFoodsScreen';
+import VerifyEmailScreen from '../../screens/VerifyEmailScreen';
 
 // If you were using FoodProvider or RequestProvider you could import them here.
 // But you confirmed you're not using RequestProvider now.
@@ -25,6 +26,7 @@ const App = () => {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AddFood" component={AddFoodScreen} />
         <Stack.Screen name="ViewFood" component={ViewFoodScreen} />
