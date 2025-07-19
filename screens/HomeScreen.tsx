@@ -1,41 +1,36 @@
+// screens/HomeScreen.tsx
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function HomeScreen({ navigation }: any) {
+import HomeTab from './HomeTab';
+import NotificationScreen from './NotificationScreen';
+import ProfileScreen from './ProfileScreen';
+
+const Tab = createBottomTabNavigator();
+
+export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Plate2People</Text>
-      </View>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap;
 
-      <View style={styles.content}>
+          if (route.name === 'HomeTab') iconName = 'home';
+          else if (route.name === 'Notifications') iconName = 'notifications';
+          else if (route.name === 'Profile') iconName = 'person';
+          else iconName = 'ellipse';  // fallback icon, just in case
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddFood')}>
-          <Text style={styles.buttonText}>Add Food</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ViewFood')}>
-          <Text style={styles.buttonText}>View Food</Text>
-        </TouchableOpacity>
-
-      </View>
-    </View>
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'seagreen',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="HomeTab" component={HomeTab} options={{ title: 'Home' }} />
+      <Tab.Screen name="Notifications" component={NotificationScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { backgroundColor: 'seagreen', paddingVertical: 40, alignItems: 'center' },
-  headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 40 },
-  button: {
-    backgroundColor: 'seagreen',
-    paddingVertical: 14,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-    marginVertical: 12,
-    minWidth: 220,
-  },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600', textAlign: 'center' },
-});

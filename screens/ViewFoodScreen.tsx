@@ -75,7 +75,7 @@ export default function ViewFoodScreen({ navigation }: any) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Food Donors</Text>
+      <Text style={styles.title}>Food Providers</Text>
 
       {uniqueUsernames.length === 0 ? (
         <Text style={styles.noData}>No food items available.</Text>
@@ -84,7 +84,7 @@ export default function ViewFoodScreen({ navigation }: any) {
           <TouchableOpacity
             key={username}
             style={styles.card}
-            onPress={() => navigation.navigate('UserFoods', { username })}
+            onPress={() => navigation.navigate('UserFoods', { userId: username })} // ✅ Fixed here
           >
             <Text style={styles.usernameText}>{userNamesMap[username] || username}</Text>
           </TouchableOpacity>
