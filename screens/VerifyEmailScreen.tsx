@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { auth } from '../firebaseConfig';
 import { sendEmailVerification } from 'firebase/auth';
+import { useRouter } from 'expo-router'; // ✅ Use Expo Router
 
-export default function VerifyEmailScreen({ navigation }: any) {
+export default function VerifyEmailScreen() {
+  const router = useRouter(); // ✅ Get router
   const [isSending, setIsSending] = useState(false);
 
   const resendEmail = async () => {
@@ -24,7 +26,7 @@ export default function VerifyEmailScreen({ navigation }: any) {
       await auth.currentUser.reload();
       if (auth.currentUser.emailVerified) {
         Alert.alert('Success', 'Email verified! You can now log in.');
-        navigation.navigate('Login');
+        router.replace('/login'); // ✅ Replaces Login screen
       } else {
         Alert.alert('Not verified yet', 'Please click the verification link sent to your email.');
       }
@@ -55,7 +57,7 @@ export default function VerifyEmailScreen({ navigation }: any) {
       <TouchableOpacity
         onPress={() => {
           auth.signOut();
-          navigation.navigate('Login');
+          router.replace('/login'); // ✅ Back to Login
         }}
         style={styles.linkContainer}
       >

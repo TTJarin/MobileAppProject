@@ -3,12 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+import { useRouter } from 'expo-router'; // ✅ NEW
 
-export default function RegisterScreen({ navigation }: any) {
+export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const router = useRouter(); // ✅ Initialize router
 
   const handleRegister = async () => {
     if (!name || !phoneNumber || !email || !password) {
@@ -24,7 +27,7 @@ export default function RegisterScreen({ navigation }: any) {
       // Send verification email
       await sendEmailVerification(user);
 
-      // Save user details in Firestore
+      // Save user data to Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         name,
@@ -33,8 +36,8 @@ export default function RegisterScreen({ navigation }: any) {
         createdAt: serverTimestamp(),
       });
 
-      // Navigate to VerifyEmailScreen instead of Login
-      navigation.navigate('VerifyEmail');
+      // ✅ Go to email verification screen
+      router.replace('/verify-email');
 
     } catch (error: any) {
       console.error('Registration error:', error.message);

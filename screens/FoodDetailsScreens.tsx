@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,48 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-export default function FoodDetailsScreen({ route, navigation }: any) {
-  const { food } = route.params;
+export default function FoodDetailsScreen() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
 
-  // Parse quantity to number and unit (e.g. "3 packs")
+  const foodId = Array.isArray(id) ? id[0] : id;
+
+  const [food, setFood] = useState<any>(null);
   const [requestedQty, setRequestedQty] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!foodId) return;
+
+    const fetchFood = async () => {
+      try {
+        const foodDoc = await getDoc(doc(db, 'foods', foodId));
+        if (foodDoc.exists()) {
+          setFood({ id: foodDoc.id, ...foodDoc.data() });
+        } else {
+          Alert.alert('Error', 'Food not found');
+          router.back();
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch food details');
+        router.back();
+      }
+    };
+
+    fetchFood();
+  }, [foodId]);
+
+  if (!food) {
+    return (
+      <View style={styles.center}>
+        <Text>Loading food details...</Text>
+      </View>
+    );
+  }
 
   const parseQuantity = (qtyStr: string) => {
     const parts = qtyStr.split(' ');
@@ -31,7 +64,6 @@ export default function FoodDetailsScreen({ route, navigation }: any) {
 
   const { num: totalQty, unit: qtyUnit } = parseQuantity(food.quantity);
 
-  // Format pickup time readable
   const pickupTimeFormatted =
     food.pickupTime?.toDate ? food.pickupTime.toDate().toLocaleString() : 'N/A';
 
@@ -54,12 +86,10 @@ export default function FoodDetailsScreen({ route, navigation }: any) {
       const newQty = totalQty - qtyNum;
 
       if (newQty > 0) {
-        // Update quantity, keep available true
         await updateDoc(doc(db, 'foods', food.id), {
           quantity: formatQuantity(newQty, qtyUnit),
         });
       } else {
-        // Quantity zero or less: mark unavailable
         await updateDoc(doc(db, 'foods', food.id), {
           quantity: formatQuantity(0, qtyUnit),
           available: false,
@@ -67,7 +97,12 @@ export default function FoodDetailsScreen({ route, navigation }: any) {
       }
 
       Alert.alert('Success', 'Food confirmed successfully!');
-      navigation.goBack();
+
+      // Navigate to ConfirmationScreen, passing food as JSON string
+      router.push({
+        pathname: '/confirmation',
+        params: { food: JSON.stringify({...food, id:foodId}) },
+      });
     } catch (error: any) {
       Alert.alert('Error', 'Failed to confirm food.');
       console.error(error);
@@ -116,6 +151,7 @@ export default function FoodDetailsScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 20, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
   card: {
     backgroundColor: '#f9f9f9',

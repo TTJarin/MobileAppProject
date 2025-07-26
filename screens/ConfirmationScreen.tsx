@@ -1,24 +1,36 @@
+// app/confirmation.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
-export default function ConfirmationScreen({ route, navigation }: any) {
-  const { food } = route.params;
+export default function ConfirmationScreen() {
+  const { food } = useLocalSearchParams();
+  const router = useRouter();
+
+  // Parse food from string param safely
+  const parsedFood = typeof food === 'string' ? JSON.parse(food) : null;
+
   const [contactNo, setContactNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     async function fetchDonorContact() {
+      if (!parsedFood?.username) {
+        setContactNo('N/A');
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Fetch donor user doc by food.username (donor ID)
-        const donorDocRef = doc(db, 'users', food.username);
+        const donorDocRef = doc(db, 'users', parsedFood.username);
         const donorDocSnap = await getDoc(donorDocRef);
 
         if (donorDocSnap.exists()) {
           const donorData = donorDocSnap.data();
-          // Adjust field name here if needed
           const phone = donorData.contactNo || donorData.phone || donorData.phoneNumber || 'N/A';
           setContactNo(phone);
         } else {
@@ -33,7 +45,36 @@ export default function ConfirmationScreen({ route, navigation }: any) {
     }
 
     fetchDonorContact();
-  }, [food.username]);
+  }, [parsedFood]);
+
+  async function confirmFood() {
+    if (!parsedFood?.id || !parsedFood?.username || !parsedFood?.quantity) {
+      Alert.alert('Error', 'Invalid food data. Cannot confirm.');
+      return;
+    }
+
+    setConfirming(true);
+
+    try {
+      const foodDocRef = doc(db, 'foods', parsedFood.id);
+
+      // Required fields for Firestore rule validation
+      await updateDoc(foodDocRef, {
+        available: false,
+        quantity: parsedFood.quantity,
+        username: parsedFood.username,
+        confirmedBy: auth.currentUser?.uid || null,
+      });
+
+      Alert.alert('Success', 'Food confirmed successfully!');
+      router.push('/home');
+    } catch (error) {
+      console.error('Error confirming food:', error);
+      Alert.alert('Error', 'Failed to confirm food. Please try again.');
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -45,7 +86,7 @@ export default function ConfirmationScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color="#fff" />
       </TouchableOpacity>
 
@@ -57,7 +98,20 @@ export default function ConfirmationScreen({ route, navigation }: any) {
           Please contact the below number to pick up the food at the specific time and location.
         </Text>
         <Text style={styles.contactMessage}>Contact No: {contactNo}</Text>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
+
+        <TouchableOpacity
+          style={[styles.button, confirming && { opacity: 0.7 }]}
+          onPress={confirmFood}
+          disabled={confirming}
+        >
+          <Text style={styles.buttonText}>{confirming ? 'Confirming...' : 'Confirm Food'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: 'gray', marginTop: 10 }]}
+          onPress={() => router.push('/home')}
+          disabled={confirming}
+        >
           <Text style={styles.buttonText}>Go to Home</Text>
         </TouchableOpacity>
       </View>

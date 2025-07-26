@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -9,11 +10,11 @@ export default function HomeTab({ navigation }: any) {
       </View>
 
       <View style={styles.content}>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddFood')}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/add-food')}>
           <Text style={styles.buttonText}>Add Food</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ViewFood')}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/view-food')}>
           <Text style={styles.buttonText}>View Food</Text>
         </TouchableOpacity>
       </View>

@@ -20,9 +20,13 @@ import {
   getDoc,
   Timestamp,
 } from 'firebase/firestore';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
-export default function UserFoodsScreen({ route, navigation }: any) {
-  const { userId } = route.params;
+export default function UserFoodsScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const userId = params.userId as string;
+
   const [userFoods, setUserFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUid, setCurrentUid] = useState('');
@@ -128,7 +132,12 @@ export default function UserFoodsScreen({ route, navigation }: any) {
 
       Alert.alert('Confirmed!', 'Food successfully confirmed.');
       setQuantitiesToConfirm(prev => ({ ...prev, [food.id]: '' }));
-      navigation.navigate('Confirmation', { food });
+
+      // Navigate to Food Details with id param
+      router.push({
+        pathname: '/food-details',
+        params: { id: food.id },
+      });
     } catch (error) {
       console.error("Confirmation error:", error);
       Alert.alert('Error', 'Failed to confirm food.');

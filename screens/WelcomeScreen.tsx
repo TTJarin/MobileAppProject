@@ -1,25 +1,27 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function WelcomeScreen({ navigation }: any) {
+export default function WelcomeScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <View style={styles.topHalf}>
         <Text style={styles.title}>Welcome to Plate2People!</Text>
       </View>
 
-      
       <View style={styles.bottomHalf}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => router.replace('/login')}   
         >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => router.replace('/register')}  
         >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>

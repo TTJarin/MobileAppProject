@@ -11,8 +11,10 @@ import {
 import { auth, db } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getDoc, setDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'expo-router'; // ✅ Expo Router navigation
 
-const LoginScreen = ({ navigation }: any) => {
+const LoginScreen = () => {
+  const router = useRouter(); // ✅ using expo-router
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -53,7 +55,7 @@ const LoginScreen = ({ navigation }: any) => {
       setSuccessMessage('Logged in successfully! Redirecting to Home...');
 
       setTimeout(() => {
-        navigation.navigate('Home');
+        router.replace('/home'); // ✅ Go to home or tabs
       }, 2000);
 
     } catch (error: any) {
@@ -95,7 +97,7 @@ const LoginScreen = ({ navigation }: any) => {
 
       <Button title="Login" onPress={handleLogin} color="seagreen" />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerContainer}>
+      <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerContainer}>
         <Text style={styles.registerText}>{`Don't`} have an account? <Text style={styles.registerLink}>Register</Text></Text>
       </TouchableOpacity>
     </View>

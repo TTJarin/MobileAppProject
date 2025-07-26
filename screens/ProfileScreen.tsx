@@ -1,12 +1,23 @@
+// app/profile.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { useRouter } from 'expo-router';
 
-export default function ProfileScreen({ navigation }: any) {
+export default function ProfileScreen() {
   const [userData, setUserData] = useState<{ name?: string; phoneNumber?: string } | null>(null);
   const auth = getAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -32,7 +43,7 @@ export default function ProfileScreen({ navigation }: any) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.replace('Login');
+      router.replace('/login'); // route name should match your login screen file
     } catch (error) {
       Alert.alert('Error', 'Failed to logout');
     }

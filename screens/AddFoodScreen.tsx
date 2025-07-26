@@ -8,12 +8,15 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { Picker } from '@react-native-picker/picker';
+import { Calendar } from 'react-native-calendars';     
+import { Picker } from '@react-native-picker/picker';  
 import { db, auth } from '../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { useRouter } from 'expo-router'; // ✅ ADDED
 
-export default function AddFoodScreen({ navigation }: any) {
+export default function AddFoodScreen() {
+  const router = useRouter(); // ✅ ADDED
+
   const [foodName, setFoodName] = useState('');
   const [quantityValue, setQuantityValue] = useState('');
   const [quantityUnit, setQuantityUnit] = useState('packs');
@@ -63,7 +66,7 @@ export default function AddFoodScreen({ navigation }: any) {
       });
 
       Alert.alert('Success', 'Food added successfully!');
-      navigation.navigate('Home');
+      router.replace('/home'); // ✅ CHANGED from navigation to router
     } catch (error: any) {
       console.error('Error adding food:', error.message);
       Alert.alert('Error', error.message);
