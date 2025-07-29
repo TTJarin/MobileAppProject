@@ -54,6 +54,7 @@ export default function AddFoodScreen() {
 
       const formattedQuantity = `${quantityValue.trim()} ${quantityUnit}`;
 
+      // Add food document
       await addDoc(collection(db, 'foods'), {
         foodName: foodName.trim(),
         quantity: formattedQuantity,
@@ -63,6 +64,14 @@ export default function AddFoodScreen() {
         username: user.uid,
         available: true,
         createdAt: Timestamp.now(),
+      });
+
+      // Add notification document
+      await addDoc(collection(db, 'notifications'), {
+        userId: user.uid,
+        message: `You added a new food item: ${foodName.trim()}`,
+        timestamp: Timestamp.now(),
+        read: false,
       });
 
       Alert.alert('Success', 'Food added successfully!');

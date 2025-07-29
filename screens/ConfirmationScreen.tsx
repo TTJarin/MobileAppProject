@@ -10,8 +10,16 @@ export default function ConfirmationScreen() {
   const { food } = useLocalSearchParams();
   const router = useRouter();
 
-  // Parse food from string param safely
-  const parsedFood = typeof food === 'string' ? JSON.parse(food) : null;
+  // --- SAFELY parse food param only if it's a string ---
+  let parsedFood:any= null;
+  if (typeof food === 'string') {
+    try {
+      parsedFood = JSON.parse(food);
+    } catch (e) {
+      console.error('Error parsing food param:', e);
+      parsedFood = null;
+    }
+  }
 
   const [contactNo, setContactNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +56,7 @@ export default function ConfirmationScreen() {
   }, [parsedFood]);
 
   async function confirmFood() {
-    if (!parsedFood?.id || !parsedFood?.username || !parsedFood?.quantity) {
+    if (!parsedFood?.id) {
       Alert.alert('Error', 'Invalid food data. Cannot confirm.');
       return;
     }
@@ -58,19 +66,32 @@ export default function ConfirmationScreen() {
     try {
       const foodDocRef = doc(db, 'foods', parsedFood.id);
 
-      // Required fields for Firestore rule validation
-      await updateDoc(foodDocRef, {
-        available: false,
-        quantity: parsedFood.quantity,
-        username: parsedFood.username,
-        confirmedBy: auth.currentUser?.uid || null,
-      });
+      console.log('📦 parsedFood:', parsedFood);
+      console.log('👤 Current UID:', auth.currentUser?.uid);
+      console.log('🔒 Logged-in UID:', auth.currentUser?.uid);
+      console.log('📦 Food.owner UID:', parsedFood.username);
 
-      Alert.alert('Success', 'Food confirmed successfully!');
-      router.push('/home');
-    } catch (error) {
-      console.error('Error confirming food:', error);
-      Alert.alert('Error', 'Failed to confirm food. Please try again.');
+      // Update only 'available' to false
+      await updateDoc(foodDocRef, {
+  available: false,
+  confirmedBy: auth.currentUser?.uid,
+});
+
+
+      console.log('✅ Food confirmed!');
+      Alert.alert('Success', 'Food confirmed successfully.');
+      router.push('/home'); // Navigate to home after confirm
+    } catch (error: any) {
+      console.error('❌ Error confirming food:', error);
+      const errorCode = error?.code || 'unknown';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+          ? error
+          : 'Unknown error occurred';
+
+      Alert.alert('Error', `Failed to confirm food: [${errorCode}] ${errorMessage}`);
     } finally {
       setConfirming(false);
     }
@@ -99,6 +120,7 @@ export default function ConfirmationScreen() {
         </Text>
         <Text style={styles.contactMessage}>Contact No: {contactNo}</Text>
 
+        {/* Confirm button */}
         <TouchableOpacity
           style={[styles.button, confirming && { opacity: 0.7 }]}
           onPress={confirmFood}

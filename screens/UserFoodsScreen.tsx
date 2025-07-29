@@ -19,6 +19,7 @@ import {
   doc,
   getDoc,
   Timestamp,
+  addDoc,
 } from 'firebase/firestore';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -120,24 +121,35 @@ export default function UserFoodsScreen() {
       const newQty = totalQty - qtyNum;
 
       if (newQty > 0) {
+        // Partial confirm: only update quantity
         await updateDoc(doc(db, 'foods', food.id), {
           quantity: formatQuantity(newQty, unit),
         });
+
+        // Add notification for partial confirmation
+        await addDoc(collection(db, 'notifications'), {
+          userId: food.username,  // notify donor
+          message: `Your food "${food.foodName}" has a partial confirmation of ${qtyNum} ${unit}.`,
+          timestamp: Timestamp.now(),
+          read: false,
+        });
+
+        Alert.alert('Partial Confirmed', 'Quantity updated. Contact donor for pickup.');
+        setQuantitiesToConfirm(prev => ({ ...prev, [food.id]: '' }));
       } else {
-        await updateDoc(doc(db, 'foods', food.id), {
-          quantity: formatQuantity(0, unit),
-          available: false,
+        // Full confirm: add notification and go to confirmation screen
+        await addDoc(collection(db, 'notifications'), {
+          userId: food.username, // notify donor
+          message: `Your food "${food.foodName}" has been fully confirmed.`,
+          timestamp: Timestamp.now(),
+          read: false,
+        });
+
+        router.push({
+          pathname: '/confirmation',
+          params: { food: JSON.stringify(food) },
         });
       }
-
-      Alert.alert('Confirmed!', 'Food successfully confirmed.');
-      setQuantitiesToConfirm(prev => ({ ...prev, [food.id]: '' }));
-
-      // Navigate to Food Details with id param
-      router.push({
-        pathname: '/food-details',
-        params: { id: food.id },
-      });
     } catch (error) {
       console.error("Confirmation error:", error);
       Alert.alert('Error', 'Failed to confirm food.');

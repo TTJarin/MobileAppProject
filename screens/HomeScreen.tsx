@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import HomeTab from './HomeTab';
 import NotificationScreen from './NotificationScreen';
-import ProfileScreen from './ProfileScreen';
+import ProfileScreen from '../app/(tabs)/profile';
 
 const Tab = createBottomTabNavigator();
 
