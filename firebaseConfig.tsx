@@ -1,19 +1,19 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDRvcQfc2xtYI2a3ZxXvGFJyEa-ZR4nXOc",
-  authDomain: "plate2peoplefinal.firebaseapp.com",
-  projectId: "plate2peoplefinal",
-  storageBucket: "plate2peoplefinal.appspot.com",
-  messagingSenderId: "174998120931",
-  appId: "1:174998120931:web:b03b621aef986323b698d6"
+  apiKey: "AIzaSyDSPgynJXNzIfG6sz-mnriGPxQ9RCwXWaM",
+  authDomain: "plate2peoplenew.firebaseapp.com",
+  projectId: "plate2peoplenew",
+  storageBucket: "plate2peoplenew.firebasestorage.app",
+  messagingSenderId: "263868392955",
+  appId: "1:263868392955:web:6628b7275a2c1b613a175e",
 };
 
 const app = initializeApp(firebaseConfig);
 
-const auth = getAuth(app);
-const db = getFirestore(app);
 
-export { auth, db };
+export const auth = getAuth(app);
+
+export const db = getFirestore(app);
